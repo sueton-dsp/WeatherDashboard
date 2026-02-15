@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wetter Dashboard</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌤️</text></svg>">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Dynamischer Wetter-Hintergrund -->
+    <div class="weather-bg" id="weather-bg">
+        <div class="weather-bg__particles" id="bg-particles"></div>
+    </div>
+
+    <header class="header">
+        <div class="header__left">
+            <h1 class="header__title">
+                <span class="header__logo">🌤️</span>
+                Wetter Dashboard
+            </h1>
+        </div>
+        <form class="search" id="search-form">
+            <div class="search__wrapper">
+                <svg class="search__icon-left" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"/>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+                <input
+                    type="text"
+                    class="search__input"
+                    id="city-input"
+                    placeholder="Stadt eingeben..."
+                    autocomplete="off"
+                >
+                <button type="submit" class="search__btn" id="search-btn">Suchen</button>
+            </div>
+        </form>
+        <div class="header__right">
+            <button class="theme-toggle" id="theme-toggle" title="Dark/Light Mode umschalten">
+                <svg class="theme-toggle__icon theme-toggle__icon--dark" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                </svg>
+                <svg class="theme-toggle__icon theme-toggle__icon--light" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="5"/>
+                    <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                    <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <main class="dashboard" id="dashboard">
+        <!-- Fehler -->
+        <div class="error-message" id="error-message" hidden>
+            <div class="error-message__icon">⚠️</div>
+            <p class="error-message__title" id="error-title">Fehler</p>
+            <p class="error-message__text" id="error-text"></p>
+            <button class="error-message__btn" id="error-retry">Erneut versuchen</button>
+        </div>
+
+        <!-- Loading -->
+        <div class="loading" id="loading" hidden>
+            <div class="loading__spinner"></div>
+            <p>Wetterdaten werden geladen...</p>
+        </div>
+
+        <!-- Hauptbereich: Links Wetter, Rechts Sidebar -->
+        <div class="dashboard__layout" id="dashboard-layout" hidden>
+            <!-- Linke Spalte -->
+            <div class="dashboard__main">
+                <!-- Hauptkarte -->
+                <div class="card card--main card--animate">
+                    <div class="card__header">
+                        <div>
+                            <h2 id="city-name">--</h2>
+                            <p class="card__date" id="current-date">--</p>
+                        </div>
+                        <div class="card__clock" id="city-clock">--:--</div>
+                    </div>
+                    <div class="card__body card__body--main">
+                        <div class="main-temp">
+                            <img class="main-temp__icon" id="weather-icon" src="" alt="Wetter Icon">
+                            <div class="main-temp__info">
+                                <div class="main-temp__row">
+                                    <span class="main-temp__value" id="temperature">--</span>
+                                    <span class="main-temp__unit">&deg;C</span>
+                                </div>
+                                <p class="main-temp__description" id="description">--</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Widget-Grid -->
+                <div class="widget-grid">
+                    <div class="card card--widget card--animate" style="--delay: 0.05s">
+                        <div class="card__icon-badge">🌡️</div>
+                        <div class="card__header"><h3>Gef&uuml;hlte Temperatur</h3></div>
+                        <div class="card__body">
+                            <span class="card__value" id="feels-like">--</span>
+                            <span class="card__unit">&deg;C</span>
+                        </div>
+                    </div>
+
+                    <div class="card card--widget card--animate" style="--delay: 0.1s">
+                        <div class="card__icon-badge">💧</div>
+                        <div class="card__header"><h3>Luftfeuchtigkeit</h3></div>
+                        <div class="card__body">
+                            <span class="card__value" id="humidity">--</span>
+                            <span class="card__unit">%</span>
+                        </div>
+                        <div class="card__bar">
+                            <div class="card__bar-fill" id="humidity-bar" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <div class="card card--widget card--animate" style="--delay: 0.15s">
+                        <div class="card__icon-badge">💨</div>
+                        <div class="card__header"><h3>Wind</h3></div>
+                        <div class="card__body">
+                            <span class="card__value" id="wind-speed">--</span>
+                            <span class="card__unit">km/h</span>
+                        </div>
+                        <p class="card__detail" id="wind-direction">--</p>
+                    </div>
+
+                    <div class="card card--widget card--animate" style="--delay: 0.2s">
+                        <div class="card__icon-badge">🔽</div>
+                        <div class="card__header"><h3>Luftdruck</h3></div>
+                        <div class="card__body">
+                            <span class="card__value" id="pressure">--</span>
+                            <span class="card__unit">hPa</span>
+                        </div>
+                    </div>
+
+                    <div class="card card--widget card--animate" style="--delay: 0.25s">
+                        <div class="card__icon-badge">👁️</div>
+                        <div class="card__header"><h3>Sichtweite</h3></div>
+                        <div class="card__body">
+                            <span class="card__value" id="visibility">--</span>
+                            <span class="card__unit">km</span>
+                        </div>
+                    </div>
+
+                    <div class="card card--widget card--animate" style="--delay: 0.3s">
+                        <div class="card__icon-badge">☁️</div>
+                        <div class="card__header"><h3>Bew&ouml;lkung</h3></div>
+                        <div class="card__body">
+                            <span class="card__value" id="clouds">--</span>
+                            <span class="card__unit">%</span>
+                        </div>
+                        <div class="card__bar">
+                            <div class="card__bar-fill card__bar-fill--clouds" id="clouds-bar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rechte Sidebar -->
+            <aside class="dashboard__sidebar">
+                <!-- Sonnenauf-/untergang -->
+                <div class="card card--sun card--animate" style="--delay: 0.1s">
+                    <div class="card__header"><h3>Sonne</h3></div>
+                    <div class="sun-widget">
+                        <div class="sun-widget__arc" id="sun-arc">
+                            <svg viewBox="0 0 200 100" class="sun-widget__svg">
+                                <path d="M10,90 Q100,0 190,90" class="sun-widget__path" />
+                                <path d="M10,90 Q100,0 190,90" class="sun-widget__progress" id="sun-progress" />
+                                <circle r="8" class="sun-widget__dot" id="sun-dot" cx="10" cy="90" />
+                            </svg>
+                        </div>
+                        <div class="sun-widget__times">
+                            <div class="sun-widget__time">
+                                <span class="sun-widget__label">Aufgang</span>
+                                <span class="sun-widget__value" id="sunrise">--:--</span>
+                            </div>
+                            <div class="sun-widget__time">
+                                <span class="sun-widget__label">Untergang</span>
+                                <span class="sun-widget__value" id="sunset">--:--</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5-Tage-Vorhersage -->
+                <div class="card card--forecast card--animate" style="--delay: 0.2s">
+                    <div class="card__header"><h3>5-Tage-Vorhersage</h3></div>
+                    <div class="forecast-list" id="forecast-cards"></div>
+                </div>
+            </aside>
+        </div>
+    </main>
+
+    <script src="js/config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
