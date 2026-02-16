@@ -1,6 +1,3 @@
-# API-Key Konfiguration (enthält sensible Daten)
-js/config.js
-
 # OS-Dateien
 .DS_Store
 Thumbs.db
